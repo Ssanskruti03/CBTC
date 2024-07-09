@@ -1,0 +1,139 @@
+Step 1: Load and Preprocess the Dataset
+Load the dataset: We'll use the popular SpamAssassin dataset or any other publicly available dataset.
+Preprocess the text: Clean and prepare the email text for analysis.
+python
+Copy code
+import pandas as pd
+import numpy as np
+import re
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+# Load the dataset (example using CSV)
+# Dataset should have at least two columns: 'label' and 'email'
+df = pd.read_csv('spam.csv', encoding='latin-1')
+df = df[['v1', 'v2']]
+df.columns = ['label', 'email']
+
+# Preprocess the text
+def preprocess_text(text):
+    # Remove non-alphabetic characters
+    text = re.sub('[^a-zA-Z]', ' ', text)
+    # Convert to lowercase
+    text = text.lower()
+    # Remove stop words and perform stemming/lemmatization if necessary
+    # Example: text = ' '.join([stemmer.stem(word) for word in text.split() if word not in stopwords])
+    return text
+
+df['email'] = df['email'].apply(preprocess_text)
+Step 2: Vectorize the Text Data
+Convert text data to numerical data: Use techniques like TF-IDF or Count Vectorization.
+python
+Copy code
+# Vectorize the text data
+vectorizer = TfidfVectorizer(max_features=3000)
+X = vectorizer.fit_transform(df['email']).toarray()
+y = df['label'].apply(lambda x: 1 if x == 'spam' else 0).values
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+Step 3: Train a Machine Learning Model
+Train a classifier: We'll use the Multinomial Naive Bayes algorithm for its simplicity and effectiveness with text data.
+python
+Copy code
+# Train the Naive Bayes classifier
+model = MultinomialNB()
+model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test)
+Step 4: Evaluate the Model
+Evaluate the performance: Use metrics like accuracy, precision, recall, and F1-score.
+python
+Copy code
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy * 100:.2f}%')
+
+print('Classification Report:')
+print(classification_report(y_test, y_pred, target_names=['ham', 'spam']))
+
+print('Confusion Matrix:')
+print(confusion_matrix(y_test, y_pred))
+Step 5: Test the Model with New Data
+Test with new emails: Provide functionality to predict new emails.
+python
+Copy code
+# Function to predict new emails
+def predict_email(email):
+    email = preprocess_text(email)
+    email_vec = vectorizer.transform([email]).toarray()
+    prediction = model.predict(email_vec)
+    return 'spam' if prediction[0] == 1 else 'ham'
+
+# Test the function
+new_email = "Congratulations! You've won a $1000 gift card. Click here to claim your prize."
+print(predict_email(new_email))
+Complete Python Project
+Here's the complete project in a single script:
+
+python
+Copy code
+import pandas as pd
+import numpy as np
+import re
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+# Load the dataset
+df = pd.read_csv('spam.csv', encoding='latin-1')
+df = df[['v1', 'v2']]
+df.columns = ['label', 'email']
+
+# Preprocess the text
+def preprocess_text(text):
+    text = re.sub('[^a-zA-Z]', ' ', text)
+    text = text.lower()
+    return text
+
+df['email'] = df['email'].apply(preprocess_text)
+
+# Vectorize the text data
+vectorizer = TfidfVectorizer(max_features=3000)
+X = vectorizer.fit_transform(df['email']).toarray()
+y = df['label'].apply(lambda x: 1 if x == 'spam' else 0).values
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train the Naive Bayes classifier
+model = MultinomialNB()
+model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy * 100:.2f}%')
+
+print('Classification Report:')
+print(classification_report(y_test, y_pred, target_names=['ham', 'spam']))
+
+print('Confusion Matrix:')
+print(confusion_matrix(y_test, y_pred))
+
+# Function to predict new emails
+def predict_email(email):
+    email = preprocess_text(email)
+    email_vec = vectorizer.transform([email]).toarray()
+    prediction = model.predict(email_vec)
+    return 'spam' if prediction[0] == 1 else 'ham'
+
+# Test the function
+new_email = "Congratulations! You've won a $1000 gift card. Click here to claim your prize."
+print(predict_email(new_email))
